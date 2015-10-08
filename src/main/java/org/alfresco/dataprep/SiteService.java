@@ -642,4 +642,44 @@ public class SiteService
         } 
         return false;
     }
+    
+    /**
+     * Gets all existing sites
+     * 
+     * @param username site user
+     * @param password user password
+     * @return list of sites
+     * @throws Exception if error
+     */
+    public List<JSONObject> getSitesForUser(final String username,
+                                 final String password) throws Exception
+    {
+        List<JSONObject> mySitesList=new ArrayList<JSONObject>() ;
+        AlfrescoHttpClient client = alfrescoHttpClientFactory.getObject();
+        try
+        {
+            String ticket = client.getAlfTicket(username, password);
+            String apiUrl = client.getApiUrl();
+            String url = String.format("%speople/%s/sites/?alf_ticket=%s",apiUrl, username, ticket);
+            HttpGet get = new HttpGet(url);
+            HttpResponse response = client.executeRequest(get);
+            if(200 == response.getStatusLine().getStatusCode())
+            {
+                HttpEntity entity = response.getEntity();
+                String responseString = EntityUtils.toString(entity , "UTF-8"); 
+                Object obj=JSONValue.parse(responseString);
+                JSONArray jarray=(JSONArray)obj;
+                for (Object item:jarray)
+                {
+                    JSONObject jobject=(JSONObject) item;
+                    mySitesList.add(jobject);
+                }
+            }
+            return mySitesList;
+        } 
+        finally
+        {
+            client.close();
+        }
+    }
 }
