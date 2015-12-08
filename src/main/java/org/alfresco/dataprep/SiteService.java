@@ -682,4 +682,49 @@ public class SiteService
             client.close();
         }
     }
+    
+    /**
+     * Gets Site Memberships
+     *
+     */
+    public List<JSONObject> getSiteMemberships(final String ticket, String siteName) throws Exception
+    {
+        List<JSONObject> mySiteMembershipts=new ArrayList<JSONObject>() ;
+        AlfrescoHttpClient client = alfrescoHttpClientFactory.getObject();
+        try
+        {
+            String apiUrl = client.getApiUrl();
+            String url = String.format("%ssites/%s/memberships?alf_ticket=%s",apiUrl, siteName, ticket);
+            HttpGet get = new HttpGet(url);
+            HttpResponse response = client.executeRequest(get);
+            if(200 == response.getStatusLine().getStatusCode())
+            {
+                HttpEntity entity = response.getEntity();
+                String responseString = EntityUtils.toString(entity , "UTF-8"); 
+                Object obj=JSONValue.parse(responseString);
+                JSONArray jarray=(JSONArray)obj;
+                for (Object item:jarray)
+                {
+                    JSONObject jobject=(JSONObject) item;
+                    jobject.put("siteID", siteName);
+                    mySiteMembershipts.add(jobject);
+                }
+            }
+            return mySiteMembershipts;
+        } 
+        finally
+        {
+            client.close();
+        }
+    }
+    
+    
+    /**
+     * Return the Ticket based on credentials passed
+     *
+     */
+    public String getTicket(final String username,final String password){
+    	return alfrescoHttpClientFactory.getObject().getAlfTicket(username, password);
+    }
+    
 }
